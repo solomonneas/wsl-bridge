@@ -4,7 +4,6 @@ use std::path::PathBuf;
 use tokio::process::Command;
 
 fn find_powershell() -> PathBuf {
-    // Try common WSL paths first (for systemd/non-interactive contexts)
     let candidates = [
         "/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe",
         "/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/powershell.exe",
@@ -16,7 +15,6 @@ fn find_powershell() -> PathBuf {
         }
     }
     
-    // Fall back to PATH lookup (works in interactive shells)
     PathBuf::from("powershell.exe")
 }
 
@@ -28,7 +26,8 @@ pub async fn apply_portproxy_rules(wsl_ip: Ipv4Addr, ports: &[u16]) -> Result<()
             "netsh interface portproxy delete v4tov4 listenport={} listenaddress=0.0.0.0",
             port
         );
-        run_powershell(&ps, &delete_cmd).await?;
+        // Ignore delete errors (rule might not exist)
+        let _ = run_powershell(&ps, &delete_cmd).await;
 
         let add_cmd = format!(
             "netsh interface portproxy add v4tov4 listenport={} listenaddress=0.0.0.0 connectport={} connectaddress={}",
@@ -61,7 +60,8 @@ async fn run_powershell(powershell_path: &PathBuf, command: &str) -> Result<()> 
 
     let stderr = String::from_utf8_lossy(&output.stderr);
 
-    if command.contains("portproxy delete") && stderr.to_ascii_lowercase().contains("no such") {
+    // Delete fails if rule doesn't exist - that's ok
+    if command.contains("portproxy delete") {
         return Ok(());
     }
 
