@@ -1,1 +1,0 @@
-/home/clawdbot/projects/wsl-port-forwarder/target/release/wsl-port: /home/clawdbot/projects/wsl-port-forwarder/src/config.rs /home/clawdbot/projects/wsl-port-forwarder/src/detector.rs /home/clawdbot/projects/wsl-port-forwarder/src/main.rs /home/clawdbot/projects/wsl-port-forwarder/src/windows.rs
